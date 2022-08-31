@@ -1,0 +1,21 @@
+query GetMedias($limit: Int = 10, $offset: Int = 0, $type_ilike: String = "%") {
+  media(
+    order_by: { created_at: desc }
+    limit: $limit
+    offset: $offset
+    where: { media_type: { _ilike: $type_ilike } }
+  ) {
+    id
+    name
+    url
+    media_type
+    size
+    created_at
+  }
+
+  media_aggregate(where: { media_type: { _ilike: $type_ilike } }) {
+    aggregate {
+      count
+    }
+  }
+}

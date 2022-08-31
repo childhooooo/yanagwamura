@@ -1,0 +1,26 @@
+mutation UpdatePost(
+  $post_id: bigint!
+  $title: String!
+  $category_id: Int!
+  $tags: [content_tag_insert_input!] = []
+  $field_values: [content_field_value_insert_input!] = []
+  $outdated_content_ids: [bigint!] = []
+) {
+  insert_content_one(
+    object: {
+      post_id: $post_id
+      title: $title
+      field_values: { data: $field_values }
+      category_id: $category_id
+      tags: { data: $tags }
+    }
+  ) {
+    id
+  }
+
+  delete_content(where: { id: { _in: $outdated_content_ids } }) {
+    returning {
+      id
+    }
+  }
+}

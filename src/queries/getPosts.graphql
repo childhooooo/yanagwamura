@@ -1,0 +1,152 @@
+query GetPosts($post_type_slug: String!, $limit: Int = 10, $offset: Int = 0) {
+  post_type(where: { slug: { _eq: $post_type_slug } }) {
+    id
+    slug
+    name
+  }
+
+  post(
+    limit: $limit
+    offset: $offset
+    order_by: { created_at: desc }
+    where: {
+      _and: {
+        deleted_at: { _is_null: true }
+        post_type: { slug: { _eq: $post_type_slug } }
+      }
+    }
+  ) {
+    id
+    contents(order_by: { created_at: desc }) {
+      id
+      title
+      created_at
+      field_values {
+        id
+        field_id
+        field {
+          id
+          slug
+          name
+        }
+        value_id
+        value {
+          id
+          field_type {
+            id
+            name
+            slug
+          }
+          numeric {
+            body
+          }
+          integer {
+            body
+          }
+          media {
+            body {
+              id
+              name
+              url
+              media_type
+              size
+            }
+          }
+          post {
+            body {
+              id
+              contents(order_by: { created_at: desc }) {
+                id
+                title
+                created_at
+                field_values {
+                  id
+                  field_id
+                  field {
+                    id
+                    slug
+                    name
+                  }
+                  value_id
+                  value {
+                    id
+                    field_type {
+                      id
+                      slug
+                      name
+                    }
+                    text {
+                      body
+                    }
+                    numeric {
+                      body
+                    }
+                    integer {
+                      body
+                    }
+                    media {
+                      body {
+                        id
+                        name
+                        url
+                        media_type
+                        size
+                      }
+                    }
+                    post {
+                      body {
+                        id
+                        contents {
+                          title
+                        }
+                      }
+                    }
+                    timestamp {
+                      body
+                    }
+                    boolean {
+                      body
+                    }
+                  }
+                }
+              }
+            }
+          }
+          text {
+            body
+          }
+          timestamp {
+            body
+          }
+          boolean {
+            body
+          }
+        }
+      }
+      category {
+        id
+        slug
+        name
+      }
+      tags(order_by: { tag_id: asc }) {
+        tag {
+          id
+          slug
+          name
+        }
+      }
+    }
+    post_type {
+      id
+      slug
+      name
+    }
+    created_at
+  }
+
+  post_aggregate {
+    aggregate {
+      count
+    }
+  }
+}

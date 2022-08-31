@@ -1,0 +1,23 @@
+mutation CreatePost(
+  $title: String!
+  $post_type_id: Int!
+  $category_id: Int
+  $tags: [content_tag_insert_input!] = []
+  $field_values: [content_field_value_insert_input!] = []
+) {
+  insert_post_one(
+    object: {
+      post_type_id: $post_type_id
+      contents: {
+        data: {
+          title: $title
+          field_values: { data: $field_values }
+          category_id: $category_id
+          tags: { data: $tags }
+        }
+      }
+    }
+  ) {
+    id
+  }
+}

@@ -1,0 +1,14 @@
+query GetPostTypes($limit: Int = 30, $offset: Int = 0) {
+  post_type(limit: $limit, offset: $offset, order_by: { order: asc }) {
+    id
+    slug
+    name
+    icon_tag
+  }
+
+  post_type_aggregate {
+    aggregate {
+      count
+    }
+  }
+}
