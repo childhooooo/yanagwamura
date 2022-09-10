@@ -1,15 +1,23 @@
-import { Post, Content_Field_Value, Value } from "lib/graphql";
+import { Post, Value } from "lib/graphql";
 
 export * from "./presenters";
 
-export function getValueOfField(post: Post, slug: string, revision: number): Value {
-  return (post.contents.at(revision)?.field_values || [])
-    .filter((fv: Content_Field_Value) => fv.field.slug === slug)
-    .map((fv: Content_Field_Value) => fv.value)[0];
+export function getValueOfField(
+  post: Post,
+  slug: string,
+  revision: number
+): Value {
+  return (post.revisions.at(revision)?.values || []).filter(
+    (v: Value) => v.field.slug === slug
+  )[0];
 }
 
-export function getValuesOfField(post: Post, slug: string, revision: number): Value[] {
-  return (post.contents.at(revision)?.field_values || [])
-    .filter((fv: Content_Field_Value) => fv.field.slug === slug)
-    .map((fv: Content_Field_Value) => fv.value);
+export function getValuesOfField(
+  post: Post,
+  slug: string,
+  revision: number
+): Value[] {
+  return (post.revisions.at(revision)?.values || []).filter(
+    (v: Value) => v.field.slug === slug
+  );
 }

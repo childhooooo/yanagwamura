@@ -6,7 +6,11 @@ import { Editor } from "domains/post";
 
 import { useContext, useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Post, Content, useGetPostQuery } from "lib/graphql/generated";
+import {
+  Post,
+  Revision,
+  useGetPostQuery,
+} from "lib/graphql/generated";
 import { StoreContext } from "providers";
 
 export const PostItem = () => {
@@ -54,8 +58,8 @@ export const PostItem = () => {
           {getPost.data?.post_by_pk && (
             <Block>
               <Columns gap="narrow">
-                {(getPost.data.post_by_pk.contents as Content[]).map(
-                  (_c: Content, index: number) => {
+                {(getPost.data.post_by_pk.revisions as Revision[]).map(
+                  (_r: Revision, index: number) => {
                     return (
                       <SimpleButton
                         key={index}
@@ -82,7 +86,7 @@ export const PostItem = () => {
           {getPost.data?.post_by_pk && (
             <Editor
               post={getPost.data.post_by_pk as Post}
-              revision={revision < 0 ? 0 : revision}
+              revisionNumber={revision < 0 ? 0 : revision}
               key={revision}
               onUpdate={() => {
                 getPost

@@ -9,10 +9,16 @@ import {
   PostItem,
   PostNew,
   TrashedPostList,
-  MediaList
+  CategoryList,
+  CategoryItem,
+  CategoryNew,
+  TagList,
+  TagItem,
+  TagNew,
+  MediaList,
 } from "routes";
 
-import { useContext, useEffect } from "react";
+import { useContext } from "react";
 import { StoreContext } from "providers";
 import { Post_Type, useGetPostTypesQuery } from "lib/graphql";
 
@@ -28,10 +34,6 @@ export const Router = ({}: Props) => {
       enabled: store.auth.client.firebaseId !== null,
     }
   );
-
-  useEffect(() => {
-    store.busy.setIsBusy(!getPostTypes.data && getPostTypes.isLoading);
-  }, [getPostTypes.data, getPostTypes.isLoading]);
 
   return (
     <BrowserRouter>
@@ -54,6 +56,14 @@ export const Router = ({}: Props) => {
                   }
                 ),
                 {
+                  name: "カテゴリー",
+                  path: "/category",
+                },
+                {
+                  name: "タグ",
+                  path: "/tag",
+                },
+                {
                   name: "画像",
                   path: "/media",
                 },
@@ -75,6 +85,14 @@ export const Router = ({}: Props) => {
           <Route path="post-type" element={<PostTypeList />} />
           <Route path="post-type/:id" element={<PostTypeItem />} />
           <Route path="post-type/new" element={<PostTypeNew />} />
+
+          <Route path="category" element={<CategoryList />} />
+          <Route path="category/:id" element={<CategoryItem />} />
+          <Route path="category/new" element={<CategoryNew />} />
+
+          <Route path="tag" element={<TagList />} />
+          <Route path="tag/:id" element={<TagItem />} />
+          <Route path="tag/new" element={<TagNew />} />
 
           <Route path="media" element={<MediaList />} />
         </Route>

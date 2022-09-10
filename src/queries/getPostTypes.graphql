@@ -1,5 +1,5 @@
-query GetPostTypes($limit: Int = 30, $offset: Int = 0) {
-  post_type(limit: $limit, offset: $offset, order_by: { order: asc }) {
+query GetPostTypes {
+  post_type(order_by: { order: asc }) {
     id
     slug
     name

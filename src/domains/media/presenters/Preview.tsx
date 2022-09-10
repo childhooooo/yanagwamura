@@ -3,14 +3,7 @@ import { colors } from "variables";
 import { WithAlert } from "components/button";
 
 import { useContext } from "react";
-import {
-  getStorage,
-  ref,
-  uploadBytes,
-  getDownloadURL,
-  getMetadata,
-  deleteObject,
-} from "firebase/storage";
+import { getStorage, ref, deleteObject } from "firebase/storage";
 import { Media, useDeleteMediaMutation } from "lib/graphql";
 import { formatByte } from "lib/util";
 import { StoreContext } from "providers";
@@ -46,6 +39,9 @@ export const Preview = ({ image, onDelete }: Props) => {
               store.busy.setIsBusy(false);
               console.error(e);
             });
+        },
+        onError: () => {
+          store.busy.setIsBusy(false);
         },
       }
     );

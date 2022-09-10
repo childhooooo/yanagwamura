@@ -11,7 +11,7 @@ import { useNavigate } from "react-router-dom";
 import { useForm, SubmitHandler } from "react-hook-form";
 import {
   Post,
-  Content,
+  Revision,
   Field,
   Value,
   Category,
@@ -28,50 +28,45 @@ import { StoreContext } from "providers";
 
 type Props = {
   post: Post;
-  revision: number;
+  revisionNumber: number;
   onUpdate?: () => void;
 };
 
-type CreateFieldValueVariables = {
+type CreateValueVariables = {
   field_id: number;
-  value: {
+  text: {
     data: {
-      field_type_id: number;
-      text: {
-        data: {
-          body: string;
-        };
-      };
-      numeric: {
-        data: {
-          body: number;
-        };
-      };
-      integer: {
-        data: {
-          body: number;
-        };
-      };
-      timestamp: {
-        data: {
-          body: string;
-        };
-      };
-      boolean: {
-        data: {
-          body: boolean;
-        };
-      };
-      post: {
-        data: {
-          post_id: number;
-        };
-      };
-      media: {
-        data: {
-          media_id: number;
-        };
-      };
+      body: string;
+    };
+  };
+  numeric: {
+    data: {
+      body: number;
+    };
+  };
+  integer: {
+    data: {
+      body: number;
+    };
+  };
+  timestamp: {
+    data: {
+      body: string;
+    };
+  };
+  boolean: {
+    data: {
+      body: boolean;
+    };
+  };
+  post: {
+    data: {
+      post_id: number;
+    };
+  };
+  media: {
+    data: {
+      media_id: number;
     };
   };
 };
@@ -81,28 +76,28 @@ type UpdatePostVariables = {
   title: string;
   category_id: number;
   tags: number[];
-  field_values: CreateFieldValueVariables[] | CreateFieldValueVariables[][];
-  outdated_content_ids: number[];
+  values: CreateValueVariables[] | CreateValueVariables[][];
+  created_at: string;
+  outdated_revision_ids: number[];
 };
 
-function getFieldValues(content: Content, fieldId: number): Value[] {
-  return content.field_values
-    .filter((fv) => fv.field_id === fieldId)
-    .map((fv) => fv.value);
+function getFieldValues(revision: Revision, fieldId: number): Value[] {
+  return revision.values.filter((v) => v.field_id === fieldId);
 }
 
-export const Editor = ({ post, revision, onUpdate }: Props) => {
+export const Editor = ({ post, revisionNumber, onUpdate }: Props) => {
   const navigate = useNavigate();
   const store = useContext(StoreContext);
 
-  const tagIds = post.contents.at(revision)?.tags.map((t) => t.tag.id) || [];
+  const tagIds = post.tags.map((t) => t.tag.id) || [];
   const form = useForm<UpdatePostVariables>({
     defaultValues: {
       post_id: post.id,
-      category_id: post.contents.at(revision)?.category?.id || -1,
-      title: post.contents.at(revision)?.title || "",
+      category_id: post.category_id,
+      title: post.title,
       tags: tagIds,
-      outdated_content_ids: [],
+      created_at: format(new Date(post.created_at), "yyyy-MM-dd'T'HH:mm"),
+      outdated_revision_ids: [],
     },
   });
 
@@ -120,32 +115,50 @@ export const Editor = ({ post, revision, onUpdate }: Props) => {
   const submit: SubmitHandler<UpdatePostVariables> = async (input) => {
     const tags = (input.tags || []).map((id: number) => {
       return {
+        post_id: post.id,
         tag_id: id,
       };
     });
     const variables: any = input;
     variables.tags = tags;
 
-    const field_values = input.field_values
+    variables.created_at = new Date(input.created_at).toISOString();
+
+    const values = input.values
       .flat()
-      .filter((fv: CreateFieldValueVariables) => {
-        if (!fv) {
+      .filter((v: CreateValueVariables) => {
+        if (!v) {
           return false;
         }
 
-        if (fv.value.data.post) {
-          const value = fv.value.data.post.data.post_id;
+        if (v.boolean) {
+          return v.boolean.data.body ? true : false;
+        }
+
+        if (v.post) {
+          const value = v.post.data.post_id;
           // @ts-ignore
           return value !== "" && value !== null && value !== undefined;
-        } else {
-          return true;
         }
-      });
-    variables.field_values = field_values;
 
-    variables.outdated_content_ids = post.contents
+        return true;
+      })
+      .map((v: CreateValueVariables) => {
+        if (v.timestamp) {
+          const variables = v;
+          variables.timestamp.data.body = new Date(
+            v.timestamp.data.body
+          ).toISOString();
+          return variables;
+        }
+
+        return v;
+      });
+    variables.values = values;
+
+    variables.outdated_revision_ids = post.revisions
       .slice(2)
-      .map((c: Content) => c.id);
+      .map((r: Revision) => r.id);
 
     updatePost.mutate(variables as UpdatePostMutationVariables, {
       onSuccess: (_data) => {
@@ -245,8 +258,6 @@ export const Editor = ({ post, revision, onUpdate }: Props) => {
 
   return (
     <Form onSubmit={form.handleSubmit(submit)}>
-      {/*<form onSubmit={submit} ref={formRef}>*/}
-
       <div className="line">
         <div className="label">
           <label htmlFor="title">タイトル</label>
@@ -277,13 +288,13 @@ export const Editor = ({ post, revision, onUpdate }: Props) => {
 
       {fields
         .map((f: Field, i: number) => {
-          const content = post.contents.at(revision);
+          const revision = post.revisions.at(revisionNumber);
 
-          if (!content) {
+          if (!revision) {
             return null;
           }
 
-          const values = getFieldValues(content, f.id);
+          const values = getFieldValues(revision, f.id);
 
           return (
             <div className="line" key={f.id}>
@@ -296,7 +307,7 @@ export const Editor = ({ post, revision, onUpdate }: Props) => {
                   index={i}
                   defaultValues={values}
                   form={form}
-                  name={`field_values`}
+                  name="values"
                   field={f}
                   disabled={post.deleted_at !== null}
                 />
@@ -312,7 +323,7 @@ export const Editor = ({ post, revision, onUpdate }: Props) => {
                           id={f.id}
                           defaultValue={values.at(0)?.text?.body || ""}
                           {...form.register(
-                            `field_values.${i}.value.data.text.data.body` as const,
+                            `values.${i}.text.data.body` as const,
                             {
                               required: f.required,
                               maxLength: 1000,
@@ -329,7 +340,7 @@ export const Editor = ({ post, revision, onUpdate }: Props) => {
                         rows={3}
                         defaultValue={values.at(0)?.text?.body || ""}
                         {...form.register(
-                          `field_values.${i}.value.data.text.data.body` as const,
+                          `values.${i}.text.data.body` as const,
                           {
                             required: f.required,
                             maxLength: 10000,
@@ -345,7 +356,7 @@ export const Editor = ({ post, revision, onUpdate }: Props) => {
                           editorId={f.id}
                           onChange={(content: string) => {
                             form.setValue(
-                              `field_values.${i}.value.data.text.data.body` as const,
+                              `values.${i}.text.data.body` as const,
                               content
                             );
                           }}
@@ -357,7 +368,7 @@ export const Editor = ({ post, revision, onUpdate }: Props) => {
                           id={f.id}
                           defaultValue={values.at(0)?.text?.body || ""}
                           {...form.register(
-                            `field_values.${i}.value.data.text.data.body` as const,
+                            `values.${i}.text.data.body` as const,
                             {
                               required: f.required,
                               minLength: 1,
@@ -374,7 +385,7 @@ export const Editor = ({ post, revision, onUpdate }: Props) => {
                         id={f.id}
                         defaultValue={values.at(0)?.text?.body || ""}
                         {...form.register(
-                          `field_values.${i}.value.data.text.data.body` as const,
+                          `values.${i}.text.data.body` as const,
                           {
                             required: f.required,
                             pattern: /^[a-z\-_].[a-z\-_0-9]*$/,
@@ -391,7 +402,7 @@ export const Editor = ({ post, revision, onUpdate }: Props) => {
                         id={f.id}
                         defaultValue={values.at(0)?.integer?.body || -1}
                         {...form.register(
-                          `field_values.${i}.value.data.integer.data.body` as const,
+                          `values.${i}.integer.data.body` as const,
                           {
                             required: f.required,
                           }
@@ -406,7 +417,7 @@ export const Editor = ({ post, revision, onUpdate }: Props) => {
                         id={f.id}
                         defaultValue={values.at(0)?.numeric?.body || -1}
                         {...form.register(
-                          `field_values.${i}.value.data.numeric.data.body` as const,
+                          `values.${i}.numeric.data.body` as const,
                           {
                             required: f.required,
                           }
@@ -416,20 +427,32 @@ export const Editor = ({ post, revision, onUpdate }: Props) => {
                     )}
 
                     {f.field_type.slug === "boolean" && (
-                      <input
-                        type="checkbox"
-                        id={f.id}
-                        defaultValue={
-                          values.at(0)?.boolean?.body ? "true" : "false"
-                        }
-                        {...form.register(
-                          `field_values.${i}.value.data.boolean.data.body` as const,
-                          {
-                            required: f.required,
+                      <>
+                        <input
+                          type="checkbox"
+                          id={f.id}
+                          defaultChecked={
+                            values.at(0)?.boolean?.body ? true : false
                           }
-                        )}
-                        disabled={post.deleted_at !== null}
-                      />
+                          onChange={(e) => {
+                            form.setValue(
+                              `values.${i}.boolean.data.body` as const,
+                              e.target.checked
+                            );
+                          }}
+                          disabled={post.deleted_at !== null}
+                        />
+
+                        <input
+                          type="hidden"
+                          defaultValue={
+                            values.at(0)?.boolean?.body ? "true" : "false"
+                          }
+                          {...form.register(
+                            `values.${i}.boolean.data.body` as const
+                          )}
+                        />
+                      </>
                     )}
 
                     {f.field_type.slug === "date" && (
@@ -440,7 +463,7 @@ export const Editor = ({ post, revision, onUpdate }: Props) => {
                           values.at(0)?.timestamp?.body || new Date()
                         }
                         {...form.register(
-                          `field_values.${i}.value.data.timestamp.data.body` as const,
+                          `values.${i}.timestamp.data.body` as const,
                           {
                             required: f.required,
                           }
@@ -451,13 +474,13 @@ export const Editor = ({ post, revision, onUpdate }: Props) => {
 
                     {f.field_type.slug === "datetime" && (
                       <input
-                        type="datetime"
+                        type="datetime-local"
                         defaultValue={
                           values.at(0)?.timestamp?.body || new Date()
                         }
                         id={f.id}
                         {...form.register(
-                          `field_values.${i}.value.data.timestamp.data.body` as const,
+                          `values.${i}.timestamp.data.body` as const,
                           {
                             required: f.required,
                           }
@@ -473,7 +496,7 @@ export const Editor = ({ post, revision, onUpdate }: Props) => {
                           defaultId={values.at(0)?.post?.body.id || null}
                           onChange={(post: Post | null) => {
                             form.setValue(
-                              `field_values.${i}.value.data.post.data.post_id` as const,
+                              `values.${i}.post.data.post_id` as const,
                               post ? post.id : null
                             );
                           }}
@@ -483,7 +506,7 @@ export const Editor = ({ post, revision, onUpdate }: Props) => {
                           type="hidden"
                           defaultValue={values.at(0)?.post?.body.id || null}
                           {...form.register(
-                            `field_values.${i}.value.data.post.data.post_id` as const,
+                            `values.${i}.post.data.post_id` as const,
                             {
                               required: f.required,
                             }
@@ -498,7 +521,7 @@ export const Editor = ({ post, revision, onUpdate }: Props) => {
                           defaultId={values.at(0)?.media?.body.id || null}
                           onChange={(image: Media | null) =>
                             form.setValue(
-                              `field_values.${i}.value.data.media.data.media_id` as const,
+                              `values.${i}.media.data.media_id` as const,
                               image ? image.id : null
                             )
                           }
@@ -508,7 +531,7 @@ export const Editor = ({ post, revision, onUpdate }: Props) => {
                           type="hidden"
                           defaultValue={values.at(0)?.media?.body.id || null}
                           {...form.register(
-                            `field_values.${i}.value.data.media.data.media_id` as const,
+                            `values.${i}.media.data.media_id` as const,
                             {
                               required: f.required,
                             }
@@ -518,8 +541,8 @@ export const Editor = ({ post, revision, onUpdate }: Props) => {
                     )}
                   </div>
 
-                  {form.formState.errors.field_values &&
-                    form.formState.errors.field_values[i] && (
+                  {form.formState.errors.values &&
+                    form.formState.errors.values[i] && (
                       <div className="error">
                         <p>正しく入力してください</p>
                       </div>
@@ -527,16 +550,8 @@ export const Editor = ({ post, revision, onUpdate }: Props) => {
 
                   <input
                     type="hidden"
-                    {...form.register(`field_values.${i}.field_id` as const)}
+                    {...form.register(`values.${i}.field_id` as const)}
                     value={f.id}
-                  />
-
-                  <input
-                    type="hidden"
-                    {...form.register(
-                      `field_values.${i}.value.data.field_type_id` as const
-                    )}
-                    value={f.field_type.id}
                   />
                 </>
               )}
@@ -553,7 +568,7 @@ export const Editor = ({ post, revision, onUpdate }: Props) => {
         <div className="input">
           <select
             id="category_id"
-            defaultValue={post.contents.at(revision)?.category_id || -1}
+            defaultValue={post.category_id}
             {...form.register("category_id", {
               required: true,
               validate: (v) => v >= 0,
@@ -569,7 +584,7 @@ export const Editor = ({ post, revision, onUpdate }: Props) => {
                   <option
                     key={c.id}
                     value={c.id}
-                    selected={c.id === post.contents.at(revision)?.category_id}
+                    selected={c.id === post.category_id}
                   >
                     {c.name}
                   </option>
@@ -612,31 +627,30 @@ export const Editor = ({ post, revision, onUpdate }: Props) => {
 
       <div className="line">
         <div className="label">
-          <label htmlFor="created">投稿日時</label>
+          <label htmlFor="created_at">投稿日時</label>
         </div>
 
         <div className="input">
           <input
-            type="text"
-            id="created"
-            value={format(new Date(post.created_at), "yyyy-MM-dd HH:mm:ss")}
-            disabled
+            type="datetime-local"
+            id="created_at"
+            {...form.register("created_at", { required: true })}
           />
         </div>
       </div>
 
       <div className="line">
         <div className="label">
-          <label htmlFor="updated">更新日時</label>
+          <label htmlFor="updated_at">更新日時</label>
         </div>
 
         <div className="input">
           <input
             type="text"
-            id="updated"
+            id="updated_at"
             value={format(
               new Date(
-                post.contents.at(revision)?.created_at || post.created_at
+                post.revisions.at(revisionNumber)?.created_at || post.created_at
               ),
               "yyyy-MM-dd HH:mm:ss"
             )}

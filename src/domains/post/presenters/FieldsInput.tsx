@@ -32,7 +32,6 @@ export const FieldsInput = ({
       minLength: field.required ? 1 : 0,
       validate: {
         required: () => {
-          console.log(form.formState.errors);
           return field.required
             ? form.getValues(`${name}.${index}`).length > 0
             : true;
@@ -52,143 +51,99 @@ export const FieldsInput = ({
         switch (field.field_type.slug) {
           case "text":
             append({
-              value: {
+              text: {
                 data: {
-                  text: {
-                    data: {
-                      body: v.text?.body || "",
-                    },
-                  },
+                  body: v.text?.body || "",
                 },
               },
             });
             break;
           case "textarea":
             append({
-              value: {
+              text: {
                 data: {
-                  text: {
-                    data: {
-                      body: v.text?.body || "",
-                    },
-                  },
+                  body: v.text?.body || "",
                 },
               },
             });
             break;
           case "richtext":
             append({
-              value: {
+              text: {
                 data: {
-                  text: {
-                    data: {
-                      body: v.text?.body || "",
-                    },
-                  },
+                  body: v.text?.body || "",
                 },
               },
             });
             break;
           case "slug":
             append({
-              value: {
+              text: {
                 data: {
-                  text: {
-                    data: {
-                      body: v.text?.body || "",
-                    },
-                  },
+                  body: v.text?.body || "",
                 },
               },
             });
             break;
           case "integer":
             append({
-              value: {
+              integer: {
                 data: {
-                  integer: {
-                    data: {
-                      body: v.integer?.body || "",
-                    },
-                  },
+                  body: v.integer?.body || "",
                 },
               },
             });
             break;
           case "numeric":
             append({
-              value: {
+              numeric: {
                 data: {
-                  numeric: {
-                    data: {
-                      body: v.numeric?.body || "",
-                    },
-                  },
+                  body: v.numeric?.body || "",
                 },
               },
             });
             break;
           case "boolean":
             append({
-              value: {
+              boolean: {
                 data: {
-                  boolean: {
-                    data: {
-                      body: v.boolean?.body || "",
-                    },
-                  },
+                  body: v.boolean?.body || "",
                 },
               },
             });
             break;
           case "date":
             append({
-              value: {
+              timestamp: {
                 data: {
-                  timestamp: {
-                    data: {
-                      body: v.timestamp?.body || "",
-                    },
-                  },
+                  body: v.timestamp?.body || "",
                 },
               },
             });
             break;
           case "datetime":
             append({
-              value: {
+              timestamp: {
                 data: {
-                  timestamp: {
-                    data: {
-                      body: v.timestamp?.body || "",
-                    },
-                  },
+                  body: v.timestamp?.body || "",
                 },
               },
             });
             break;
           case "post":
             append({
-              value: {
+              post: {
                 data: {
-                  post: {
-                    data: {
-                      post_id: v.post?.body.id || "",
-                    },
-                  },
+                  post_id: v.post?.body.id || "",
                 },
               },
             });
             break;
           case "image":
             append({
-              value: {
+              media: {
                 data: {
-                  media: {
-                    data: {
-                      media_id: v.media?.body.id || "",
-                    },
-                  },
+                  media_id: v.media?.body.id || "",
                 },
               },
             });
@@ -213,7 +168,7 @@ export const FieldsInput = ({
                   id={`${field.id}-${f.id}`}
                   key={f.id}
                   {...form.register(
-                    `${name}.${index}.${i}.value.data.text.data.body` as const,
+                    `${name}.${index}.${i}.text.data.body` as const,
                     {
                       required: true,
                       maxLength: 1000,
@@ -229,7 +184,7 @@ export const FieldsInput = ({
                   key={f.id}
                   rows={3}
                   {...form.register(
-                    `${name}.${index}.${i}.value.data.text.data.body` as const,
+                    `${name}.${index}.${i}.text.data.body` as const,
                     {
                       required: true,
                       maxLength: 10000,
@@ -245,14 +200,13 @@ export const FieldsInput = ({
                     editorId={`${field.id}-${f.id}`}
                     onChange={(content: string) => {
                       form.setValue(
-                        `${name}.${index}.${i}.value.data.text.data.body` as const,
+                        `${name}.${index}.${i}.text.data.body` as const,
                         content
                       );
                     }}
                     defaultContent={
-                      form.getValues(
-                        `${name}.${index}.${i}.value.data.text.data.body`
-                      ) || ""
+                      form.getValues(`${name}.${index}.${i}.text.data.body`) ||
+                      ""
                     }
                     disabled={disabled || false}
                   />
@@ -261,7 +215,7 @@ export const FieldsInput = ({
                     id={`${field.id}-${f.id}`}
                     key={f.id}
                     {...form.register(
-                      `${name}.${index}.${i}.value.data.text.data.body` as const,
+                      `${name}.${index}.${i}.text.data.body` as const,
                       {
                         required: true,
                         minLength: 1,
@@ -278,7 +232,7 @@ export const FieldsInput = ({
                   id={`${field.id}-${f.id}`}
                   key={f.id}
                   {...form.register(
-                    `${name}.${index}.${i}.value.data.text.data.body` as const,
+                    `${name}.${index}.${i}.text.data.body` as const,
                     {
                       required: true,
                       pattern: /^[a-z\-_].[a-z\-_0-9]*$/,
@@ -294,7 +248,7 @@ export const FieldsInput = ({
                   id={`${field.id}-${f.id}`}
                   key={f.id}
                   {...form.register(
-                    `${name}.${index}.${i}.value.data.numeric.data.body` as const,
+                    `${name}.${index}.${i}.numeric.data.body` as const,
                     {
                       required: true,
                     }
@@ -310,7 +264,7 @@ export const FieldsInput = ({
                   id={`${field.id}-${f.id}`}
                   key={f.id}
                   {...form.register(
-                    `${name}.${index}.${i}.value.data.integer.data.body` as const,
+                    `${name}.${index}.${i}.integer.data.body` as const,
                     {
                       required: true,
                     }
@@ -320,18 +274,32 @@ export const FieldsInput = ({
               )}
 
               {field.field_type.slug === "boolean" && (
-                <input
-                  type="checkbox"
-                  id={`${field.id}-${f.id}`}
-                  key={f.id}
-                  {...form.register(
-                    `${name}.${index}.${i}.value.data.boolean.data.body` as const,
-                    {
-                      required: true,
+                <>
+                  <input
+                    type="checkbox"
+                    id={`${field.id}-${f.id}`}
+                    key={f.id}
+                    defaultChecked={
+                      form.getValues(`${name}.${index}.${i}.boolean.data.body`)
+                        ? true
+                        : false
                     }
-                  )}
-                  disabled={disabled || false}
-                />
+                    disabled={disabled || false}
+                    onChange={(e) => {
+                      form.setValue(
+                        `${name}.${index}.${i}.boolean.data.body` as const,
+                        e.target.checked
+                      );
+                    }}
+                  />
+
+                  <input
+                    type="hidden"
+                    {...form.register(
+                      `${name}.${index}.${i}.boolean.data.body` as const
+                    )}
+                  />
+                </>
               )}
 
               {field.field_type.slug === "date" && (
@@ -340,7 +308,7 @@ export const FieldsInput = ({
                   id={`${field.id}-${f.id}`}
                   key={f.id}
                   {...form.register(
-                    `${name}.${index}.${i}.value.data.timestamp.data.body` as const,
+                    `${name}.${index}.${i}.timestamp.data.body` as const,
                     {
                       required: true,
                     }
@@ -355,7 +323,7 @@ export const FieldsInput = ({
                   id={`${field.id}-${f.id}`}
                   key={f.id}
                   {...form.register(
-                    `${name}.${index}.${i}.value.data.timestamp.data.body` as const,
+                    `${name}.${index}.${i}.timestamp.data.body` as const,
                     {
                       required: true,
                     }
@@ -370,12 +338,12 @@ export const FieldsInput = ({
                     slug={field.field_post_type.slug}
                     defaultId={
                       form.getValues(
-                        `${name}.${index}.${i}.value.data.post.data.post_id`
+                        `${name}.${index}.${i}.post.data.post_id`
                       ) || null
                     }
                     onChange={(post: Post | null) => {
                       form.setValue(
-                        `${name}.${index}.${i}.value.data.post.data.post_id` as const,
+                        `${name}.${index}.${i}.post.data.post_id` as const,
                         post ? post.id : null
                       );
                     }}
@@ -386,7 +354,7 @@ export const FieldsInput = ({
                     id={`${field.id}-${f.id}`}
                     key={f.id}
                     {...form.register(
-                      `${name}.${index}.${i}.value.data.post.data.post_id` as const,
+                      `${name}.${index}.${i}.post.data.post_id` as const,
                       {
                         required: true,
                       }
@@ -400,12 +368,12 @@ export const FieldsInput = ({
                   <ImageInput
                     defaultId={
                       form.getValues(
-                        `${name}.${index}.${i}.value.data.media.data.media_id`
+                        `${name}.${index}.${i}.media.data.media_id`
                       ) || null
                     }
                     onChange={(image: Media | null) =>
                       form.setValue(
-                        `${name}.${index}.${i}.value.data.media.data.media_id` as const,
+                        `${name}.${index}.${i}.media.data.media_id` as const,
                         image ? image.id : null
                       )
                     }
@@ -416,7 +384,7 @@ export const FieldsInput = ({
                     id={`${field.id}-${f.id}`}
                     key={f.id}
                     {...form.register(
-                      `${name}.${index}.${i}.value.data.media.data.media_id` as const,
+                      `${name}.${index}.${i}.media.data.media_id` as const,
                       {
                         required: true,
                       }
@@ -440,14 +408,6 @@ export const FieldsInput = ({
                 type="hidden"
                 {...form.register(`${name}.${index}.${i}.field_id` as const)}
                 value={field.id}
-              />
-
-              <input
-                type="hidden"
-                {...form.register(
-                  `${name}.${index}.${i}.value.data.field_type_id` as const
-                )}
-                value={field.field_type.id}
               />
 
               {!disabled && (

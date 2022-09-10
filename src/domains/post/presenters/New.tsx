@@ -26,46 +26,41 @@ type Props = {
   postType: Post_Type;
 };
 
-type CreateFieldValueVariables = {
+type CreateValueVariables = {
   field_id: number;
-  value: {
+  text: {
     data: {
-      field_type_id: number;
-      text: {
-        data: {
-          body: string;
-        };
-      };
-      numeric: {
-        data: {
-          body: number;
-        };
-      };
-      integer: {
-        data: {
-          body: number;
-        };
-      };
-      timestamp: {
-        data: {
-          body: string;
-        };
-      };
-      boolean: {
-        data: {
-          body: boolean;
-        };
-      };
-      post: {
-        data: {
-          post_id: number;
-        };
-      };
-      media: {
-        data: {
-          media_id: number;
-        };
-      };
+      body: string;
+    };
+  };
+  numeric: {
+    data: {
+      body: number;
+    };
+  };
+  integer: {
+    data: {
+      body: number;
+    };
+  };
+  timestamp: {
+    data: {
+      body: string;
+    };
+  };
+  boolean: {
+    data: {
+      body: boolean;
+    };
+  };
+  post: {
+    data: {
+      post_id: number;
+    };
+  };
+  media: {
+    data: {
+      media_id: number;
     };
   };
 };
@@ -75,7 +70,7 @@ type CreatePostVariables = {
   post_type_id: number;
   category_id: number;
   tags: number[];
-  field_values: CreateFieldValueVariables[] | CreateFieldValueVariables[][];
+  values: CreateValueVariables[] | CreateValueVariables[][];
 };
 
 export const New = ({ postType }: Props) => {
@@ -104,22 +99,37 @@ export const New = ({ postType }: Props) => {
     const variables: any = input;
     variables.tags = tags;
 
-    const field_values = input.field_values
+    const values = input.values
       .flat()
-      .filter((fv: CreateFieldValueVariables) => {
-        if (!fv) {
+      .filter((v: CreateValueVariables) => {
+        if (!v) {
           return false;
         }
 
-        if (fv.value.data.post) {
-          const value = fv.value.data.post.data.post_id;
+        if (v.boolean) {
+          return v.boolean.data.body ? true : false;
+        }
+
+        if (v.post) {
+          const value = v.post.data.post_id;
           // @ts-ignore
           return value !== "" && value !== null && value !== undefined;
-        } else {
-          return true;
         }
+
+        return true;
+      })
+      .map((v: CreateValueVariables) => {
+        if (v.timestamp) {
+          const variables = v;
+          variables.timestamp.data.body = new Date(
+            v.timestamp.data.body
+          ).toISOString();
+          return variables;
+        }
+
+        return v;
       });
-    variables.field_values = field_values;
+    variables.values = values;
 
     createPostMutation.mutate(variables as CreatePostMutationVariables, {
       onSuccess: (data) => {
@@ -150,7 +160,6 @@ export const New = ({ postType }: Props) => {
 
   return (
     <Form onSubmit={form.handleSubmit(submit)}>
-      {/*<form onSubmit={submit} ref={formRef}>*/}
       <div className="line">
         <div className="label">
           <label htmlFor="title">タイトル</label>
@@ -186,12 +195,7 @@ export const New = ({ postType }: Props) => {
             </div>
 
             {f.multiple && (
-              <FieldsInput
-                index={i}
-                form={form}
-                name={`field_values`}
-                field={f}
-              />
+              <FieldsInput index={i} form={form} name="values" field={f} />
             )}
 
             {!f.multiple && (
@@ -201,13 +205,10 @@ export const New = ({ postType }: Props) => {
                     <input
                       type="text"
                       id={f.id}
-                      {...form.register(
-                        `field_values.${i}.value.data.text.data.body` as const,
-                        {
-                          required: f.required,
-                          maxLength: 1000,
-                        }
-                      )}
+                      {...form.register(`values.${i}.text.data.body` as const, {
+                        required: f.required,
+                        maxLength: 1000,
+                      })}
                     />
                   )}
 
@@ -215,13 +216,10 @@ export const New = ({ postType }: Props) => {
                     <textarea
                       id={f.id}
                       rows={3}
-                      {...form.register(
-                        `field_values.${i}.value.data.text.data.body` as const,
-                        {
-                          required: f.required,
-                          maxLength: 10000,
-                        }
-                      )}
+                      {...form.register(`values.${i}.text.data.body` as const, {
+                        required: f.required,
+                        maxLength: 10000,
+                      })}
                     />
                   )}
 
@@ -231,7 +229,7 @@ export const New = ({ postType }: Props) => {
                         editorId={f.id}
                         onChange={(content: string) => {
                           form.setValue(
-                            `field_values.${i}.value.data.text.data.body` as const,
+                            `values.${i}.text.data.body` as const,
                             content
                           );
                         }}
@@ -241,7 +239,7 @@ export const New = ({ postType }: Props) => {
                         type="hidden"
                         id={f.id}
                         {...form.register(
-                          `field_values.${i}.value.data.text.data.body` as const,
+                          `values.${i}.text.data.body` as const,
                           {
                             required: f.required,
                             minLength: 1,
@@ -256,13 +254,10 @@ export const New = ({ postType }: Props) => {
                     <input
                       type="text"
                       id={f.id}
-                      {...form.register(
-                        `field_values.${i}.value.data.text.data.body` as const,
-                        {
-                          required: f.required,
-                          pattern: /^[a-z\-_].[a-z\-_0-9]*$/,
-                        }
-                      )}
+                      {...form.register(`values.${i}.text.data.body` as const, {
+                        required: f.required,
+                        pattern: /^[a-z\-_].[a-z\-_0-9]*$/,
+                      })}
                     />
                   )}
 
@@ -271,7 +266,7 @@ export const New = ({ postType }: Props) => {
                       type="number"
                       id={f.id}
                       {...form.register(
-                        `field_values.${i}.value.data.numeric.data.body` as const,
+                        `values.${i}.numeric.data.body` as const,
                         {
                           required: f.required,
                         }
@@ -285,7 +280,7 @@ export const New = ({ postType }: Props) => {
                       step={1}
                       id={f.id}
                       {...form.register(
-                        `field_values.${i}.value.data.integer.data.body` as const,
+                        `values.${i}.integer.data.body` as const,
                         {
                           required: f.required,
                         }
@@ -294,16 +289,25 @@ export const New = ({ postType }: Props) => {
                   )}
 
                   {f.field_type.slug === "boolean" && (
-                    <input
-                      type="checkbox"
-                      id={f.id}
-                      {...form.register(
-                        `field_values.${i}.value.data.boolean.data.body` as const,
-                        {
-                          required: f.required,
-                        }
-                      )}
-                    />
+                    <>
+                      <input
+                        type="checkbox"
+                        id={f.id}
+                        onChange={(e) => {
+                          form.setValue(
+                            `values.${i}.boolean.data.body` as const,
+                            e.target.checked
+                          );
+                        }}
+                      />
+
+                      <input
+                        type="hidden"
+                        {...form.register(
+                          `values.${i}.boolean.data.body` as const
+                        )}
+                      />
+                    </>
                   )}
 
                   {f.field_type.slug === "date" && (
@@ -311,7 +315,7 @@ export const New = ({ postType }: Props) => {
                       type="date"
                       id={f.id}
                       {...form.register(
-                        `field_values.${i}.value.data.timestamp.data.body` as const,
+                        `values.${i}.timestamp.data.body` as const,
                         {
                           required: f.required,
                         }
@@ -321,10 +325,10 @@ export const New = ({ postType }: Props) => {
 
                   {f.field_type.slug === "datetime" && (
                     <input
-                      type="datetime"
+                      type="datetime-local"
                       id={f.id}
                       {...form.register(
-                        `field_values.${i}.value.data.timestamp.data.body` as const,
+                        `values.${i}.timestamp.data.body` as const,
                         {
                           required: f.required,
                         }
@@ -338,7 +342,7 @@ export const New = ({ postType }: Props) => {
                         slug={f.field_post_type.slug}
                         onChange={(post: Post | null) => {
                           form.setValue(
-                            `field_values.${i}.value.data.post.data.post_id` as const,
+                            `values.${i}.post.data.post_id` as const,
                             post ? post.id : null
                           );
                         }}
@@ -346,7 +350,7 @@ export const New = ({ postType }: Props) => {
                       <input
                         type="hidden"
                         {...form.register(
-                          `field_values.${i}.value.data.post.data.post_id` as const,
+                          `values.${i}.post.data.post_id` as const,
                           {
                             required: f.required,
                           }
@@ -360,7 +364,7 @@ export const New = ({ postType }: Props) => {
                       <ImageInput
                         onChange={(image: Media | null) =>
                           form.setValue(
-                            `field_values.${i}.value.data.media.data.media_id` as const,
+                            `values.${i}.media.data.media_id` as const,
                             image ? image.id : null
                           )
                         }
@@ -368,7 +372,7 @@ export const New = ({ postType }: Props) => {
                       <input
                         type="hidden"
                         {...form.register(
-                          `field_values.${i}.value.data.media.data.media_id` as const,
+                          `values.${i}.media.data.media_id` as const,
                           {
                             required: f.required,
                           }
@@ -378,8 +382,8 @@ export const New = ({ postType }: Props) => {
                   )}
                 </div>
 
-                {form.formState.errors.field_values &&
-                  form.formState.errors.field_values[i] && (
+                {form.formState.errors.values &&
+                  form.formState.errors.values[i] && (
                     <div className="error">
                       <p>正しく入力してください</p>
                     </div>
@@ -387,16 +391,8 @@ export const New = ({ postType }: Props) => {
 
                 <input
                   type="hidden"
-                  {...form.register(`field_values.${i}.field_id` as const)}
+                  {...form.register(`values.${i}.field_id` as const)}
                   value={f.id}
-                />
-
-                <input
-                  type="hidden"
-                  {...form.register(
-                    `field_values.${i}.value.data.field_type_id` as const
-                  )}
-                  value={f.field_type.id}
                 />
               </>
             )}

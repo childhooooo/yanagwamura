@@ -1,4 +1,8 @@
-query GetTrashedPosts($post_type_slug: String!, $limit: Int = 10, $offset: Int = 0) {
+query GetTrashedPosts(
+  $post_type_slug: String!
+  $limit: Int = 10
+  $offset: Int = 0
+) {
   post_type(where: { slug: { _eq: $post_type_slug } }) {
     id
     slug
@@ -17,11 +21,24 @@ query GetTrashedPosts($post_type_slug: String!, $limit: Int = 10, $offset: Int =
     }
   ) {
     id
-    contents(order_by: { created_at: desc }) {
+    title
+    category_id
+    category {
       id
-      title
+      slug
+      name
+    }
+    tags(order_by: { tag_id: asc }) {
+      tag {
+        id
+        slug
+        name
+      }
+    }
+    revisions(order_by: { created_at: desc }) {
+      id
       created_at
-      field_values {
+      values {
         id
         field_id
         field {
@@ -29,92 +46,61 @@ query GetTrashedPosts($post_type_slug: String!, $limit: Int = 10, $offset: Int =
           slug
           name
         }
-        value_id
-        value {
-          id
-          field_type {
+        text {
+          body
+        }
+        numeric {
+          body
+        }
+        integer {
+          body
+        }
+        post {
+          body {
             id
-            name
-            slug
-          }
-          numeric {
-            body
-          }
-          integer {
-            body
-          }
-          post {
-            body {
+            title
+            created_at
+            revisions(order_by: { created_at: desc }) {
               id
-              contents(order_by: { created_at: desc }) {
+              created_at
+              values {
                 id
-                title
-                created_at
-                field_values {
+                field_id
+                field {
                   id
-                  field_id
-                  field {
+                  slug
+                  name
+                }
+                text {
+                  body
+                }
+                numeric {
+                  body
+                }
+                integer {
+                  body
+                }
+                post {
+                  body {
                     id
-                    slug
-                    name
+                    title
                   }
-                  value_id
-                  value {
-                    id
-                    field_type {
-                      id
-                      slug
-                      name
-                    }
-                    text {
-                      body
-                    }
-                    numeric {
-                      body
-                    }
-                    integer {
-                      body
-                    }
-                    post {
-                      body {
-                        id
-                        contents {
-                          title
-                        }
-                      }
-                    }
-                    timestamp {
-                      body
-                    }
-                    boolean {
-                      body
-                    }
-                  }
+                }
+                timestamp {
+                  body
+                }
+                boolean {
+                  body
                 }
               }
             }
           }
-          text {
-            body
-          }
-          timestamp {
-            body
-          }
-          boolean {
-            body
-          }
         }
-      }
-      category {
-        id
-        slug
-        name
-      }
-      tags(order_by: { tag_id: asc }) {
-        tag {
-          id
-          slug
-          name
+        timestamp {
+          body
+        }
+        boolean {
+          body
         }
       }
     }

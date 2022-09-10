@@ -4,7 +4,7 @@ import { sizes, colors } from "variables";
 import { format } from "date-fns";
 import { Link as L } from "react-router-dom";
 
-import { Post, Content_Tag } from "lib/graphql/generated";
+import { Post, Content_Tag, Post_Tag } from "lib/graphql/generated";
 
 type Props = {
   post: Post;
@@ -14,16 +14,22 @@ export const Link = ({ post }: Props) => {
   return (
     <Component to={`/post/${post.post_type.slug}/${post.id}`}>
       <div className="header">
-        <p className="title">{post.contents[0].title}</p>
-        <p className="date">最終更新: {format(new Date(post.contents[0].created_at), "yyyy.MM.dd HH:mm:ss")}</p>
+        <p className="title">{post.title}</p>
+        <p className="date">
+          最終更新:{" "}
+          {format(
+            new Date(post.revisions[0].created_at),
+            "yyyy.MM.dd HH:mm:ss"
+          )}
+        </p>
       </div>
 
       <div className="details">
-        {post.contents[0].category && <p className="category">{post.contents[0].category.name}</p>}
+        {post.category && <p className="category">{post.category.name}</p>}
 
-        {post.contents[0].tags.length > 0 && (
+        {post.tags.length > 0 && (
           <ul className="tags">
-            {((post.contents[0].tags as Content_Tag[]) || []).map((t: Content_Tag) => {
+            {((post.tags as Post_Tag[]) || []).map((t: Post_Tag) => {
               return <li>#{t.tag.name}</li>;
             })}
           </ul>
@@ -54,7 +60,7 @@ const Component = styled(L)`
 
     .date {
       color: ${colors.darkGray};
-      font-size: .9rem;
+      font-size: 0.9rem;
       font-weight: 400;
     }
   }

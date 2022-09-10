@@ -143,6 +143,16 @@ const Container = styled.div<ContainerProps>`
   opacity: ${(p) => (p.disabled ? "0.7" : "1")};
   pointer-events: ${(p) => (p.disabled ? "none" : "auto")};
 
+  .ql-container {
+    position: relative;
+    z-index: 1;
+  }
+
+  .ql-toolbar {
+    position: relative;
+    z-index: 2;
+  }
+
   .ql-editor {
     position: relative;
     z-index: 2;

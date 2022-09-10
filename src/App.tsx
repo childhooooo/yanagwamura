@@ -2,6 +2,7 @@ import { UnflexibleProvider } from "unflexible-ui-core";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { StoreProvider } from "providers";
 import { Router } from "./Router";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 
 const config = {
   stacked: {
@@ -50,6 +51,7 @@ function App() {
         <StoreProvider>
           <Router />
         </StoreProvider>
+        <ReactQueryDevtools initialIsOpen={false} />
       </QueryClientProvider>
     </UnflexibleProvider>
   );

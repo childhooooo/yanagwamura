@@ -3,6 +3,7 @@ import {
   getAuth,
   signInWithEmailAndPassword,
   signInWithPopup,
+  reload,
   GoogleAuthProvider,
   onAuthStateChanged,
 } from "firebase/auth";
@@ -32,11 +33,15 @@ export function useAuth(): AuthState {
   const [isLoading, setIsLoading] = useState(true);
   const [isFirebaseError, setIsFirebaseError] = useState(false);
 
-  const getAdmin = useGetAdminQuery(client.graphQLClient, {
-    id: client.firebaseId || "",
-  }, {
-    enabled: client.firebaseId !== null
-  });
+  const getAdmin = useGetAdminQuery(
+    client.graphQLClient,
+    {
+      id: client.firebaseId || "",
+    },
+    {
+      enabled: client.firebaseId !== null,
+    }
+  );
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -65,6 +70,31 @@ export function useAuth(): AuthState {
 
     return unsubscribe;
   }, []);
+
+  useEffect(() => {
+    if (getAdmin.failureCount > 2) {
+      (async () => {
+        if (auth.currentUser) {
+          try {
+            const token = await auth.currentUser.getIdToken();
+
+            setClient(
+              RequestClient.generate({
+                firebaseId: auth.currentUser.uid,
+                token,
+              })
+            );
+
+            setIsFirebaseError(false);
+          } catch {
+            signOut();
+          }
+        } else {
+          signOut();
+        }
+      })();
+    }
+  }, [getAdmin.isError]);
 
   const signIn = async (email: string, password: string) => {
     setIsLoading(true);

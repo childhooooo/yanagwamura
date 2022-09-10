@@ -78,7 +78,7 @@ export const Layout = ({ menu }: Props) => {
           </Menu>
         </Stacked>
 
-        <Stacked paddingPos="top" paddingSize="narrow">
+        <Stacked>
           <Actions>
             {auth.admin && (
               <li>
